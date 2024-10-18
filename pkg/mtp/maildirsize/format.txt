@@ -1,0 +1,62 @@
+Format pliku
+
+Pierwsza linia zawiera definicję quoty wg formatu: gdzie zero należy zastąpić wielkością przydzielonej powierzchni
+zaś znacznik S oznacz ze chodzi o Total Size of all messages - czyli maksymalna powierzchnia wiadomosci
+0S
+
+lub
+
+0S,0C
+
+W tym przypadku C jest skórem od maxium count of messages, czli maksymalnej liczby wiadomosci,
+które moze przechowywać konto. I tak np.
+
+10000S - konto może pomieścić do 10000 bajtów wiadomości, bez wzgledu na ich ilość
+100C - konto moze pomieścić do 100 wiadomości bez względu na ich rozmiar
+1024S,10C - konto może pomieścić max do 1024 bajtów wiadomości, jednak nie więcej niż do 10 wiadomości ogólnie
+
+Następne linie zawierają dwie liczby w linii.
+Pierwsza linia oznacza liczbę bajtów, druga liczba określa liczbę plików. Liczby oddzielamy spacjami (0x20) zaś samą
+linię kończymy znakiem konća linii (0x0A)
+
+Każda wartość liczbowa jest uzupełniona od lewej strony białą spacją,
+tak aby wartość mieściła się w 14 bajtach wraz ze znakiem konca linii.
+
+23351787520S
+ 11967297058        16176
+      -22050           -1
+      -97648           -1
+      -19682           -1
+      -20695           -1
+      375384           10
+      -21549           -1
+         ...          ...
+
+Po przekroczeniu 5120 bajtów rozmiaru pliku maildirsize należy quotę przeliczyć i umieścić wartości sumaryczne,
+czyli np. tak
+
+23351787520S
+ 11967297058        16176
+
+
+Za każdym razem, gdy wiadomość zostanie dostarczana lub kasowana do folderu z wiadomosciami jedna linia jest dodawana.
+Ponieważ większość wiadomości mieści się w rozmiarze do 10KB (to tlumaczenie starego API),
+każda linia będzie rozmiaru od 8 do 9 bajtów długości:
+
+4 bajty dla wielkosci wiadomości, spacja, cyfra 1 oznaczając ilość, znak nowej linii.
+
+Opcjonalnie wartości mogą posiadać znak minusa, informujący, że wiadomość została usunięta i powierzchnia jest zwolniona.
+To daje nam wymuszenie przeliczenia co 640 wiadomości.
+
+Ponieważ wiadomości są przeważnie dodawane do folderu raz i raz kasowane, daje nam to średnio przeliczenie co każde 320 wiadomości.
+
+Ponieważ większość załączników jest mniejsza niż 100K, zwiększa nam to częśtotliwość potrzeby przeliczenia quoty co 150 wiadomości.
+
+Reading from a Maildir++
+
+Maildir++ readers should mind the following additional tasks:
+
+Make sure to create the maildirfolder file in any new folders created within the Maildir++.
+When moving a message to the Trash folder, append a line to maildirsize, containing a negative message size and a '-1'.
+When moving a message from the Trash folder, follow the steps described in "Delivering to Maildir++", as far as quota logic goes. That is, refuse to move messages out of Trash if the Maildir++ is over quota.
+Moving a message between other folders carries no additional requirements.

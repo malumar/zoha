@@ -1,0 +1,40 @@
+{
+  "Domains": {
+    "example.tld": true
+  },
+  "Mailboxes": {
+    "example.tld": {
+      "Created": "0001-01-01T00:00:00Z",
+      "FullNameOfEmailOwner": "",
+      "Password": "xxx",
+      "MountPath": "",
+      "Quota": 19860,
+      "UsedQuota": 0,
+      "DisallowSend": false,
+      "DisallowReceive": false,
+      "DisableImap": true,
+      "DisableUnsecureImap": false,
+      "DisablePop3": false,
+      "DisableUnsecurePop3": false,
+      "DisableWebmail": false,
+      "DisableShared": false,
+      "ImapGroup": "",
+      "ImapSharedGroup": "",
+      "WhiteListEmailPatterns": [
+        "*@gmail.com"
+      ],
+      "BlackListEmailPatterns": [
+        "*@yahoo.com"
+      ],
+      "MoveSpam": true,
+      "SysUid": 2000,
+      "SysGid": 2000,
+      "Disabled": false,
+      "AccountDisabled": false,
+      "AutoresponderEnabled": false,
+      "AutoresponderSubject": "",
+      "AutoresponderBody": ""
+    }
+  },
+  "LastTimestamp": "2"
+}

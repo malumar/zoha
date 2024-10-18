@@ -1,0 +1,25 @@
+{
+  "users": [
+    {
+      "domain": "example.tld",
+      "email": "dummy@example.tld",
+      "account": "bestclient",
+      "email_server_id": "42",
+      "quota": "19860",
+      "disableimap": "1",
+      "disablepop3": "0",
+      "disablewebmail": "0",
+      "whitelist": [
+        "*@ikea.com"
+      ],
+      "blacklist": [
+        "*@spamer*"
+      ],
+      "spamaction": "move",
+      "isautoresponder": "0",
+      "autoresponder_subject": "I am currently out of the office",
+      "autoresponder_body": "Thank you for your email. I’m out of the office and will be back at (Date of Return). During this period I will have limited access to my email.",
+      "password": "xxx"
+    }
+  ]
+}
