@@ -1,4 +1,4 @@
-**Zoha** is a lightweight **LMTP** (Local Mail Transfer Protocol) server designed for use with various **Mail Transfer Agents (MTA)**, most commonly paired with **Courier IMAP** and **Postfix**. This combination allows for the creation of a highly scalable, distributed email system. Although Zoha was specifically developed to integrate seamlessly with Courier IMAP and Postfix, it remains flexible and can operate with other MTAs as well.
+**Zoha** is a lightweight **LMTP** (Local Mail Transfer Protocol) server written in Go (golang) designed for use with various **Mail Transfer Agents (MTA)**, most commonly paired with **Courier IMAP** and **Postfix**. This combination allows for the creation of a highly scalable, distributed email system. Although Zoha was specifically developed to integrate seamlessly with Courier IMAP and Postfix, it remains flexible and can operate with other MTAs as well.
 
 In such a setup:
 
