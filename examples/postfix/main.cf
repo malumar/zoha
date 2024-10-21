@@ -1,0 +1,213 @@
+# See /usr/share/postfix/main.cf.dist for a commented, more complete version
+mail_name = Postfix by Zoha
+
+# Support only IPV4 - without it google returns errors if we do not have ipv6 defined on the server
+inet_protocols=ipv4
+
+myhostname = node1.example.tld
+myorigin = example.tld
+
+smtputf8_enable = yes
+smtp_connection_cache_time_limit = 6s
+
+mydomain = smtp.example.tld
+
+mydestination = $myhostname $mydomain localhost localhost.$mydomain node1
+
+
+mynetworks = 127.0.0.0/8
+
+
+smtpd_relay_restrictions = permit_mynetworks, permit_sasl_authenticated, reject_unauth_destination
+
+
+milter_default_action = accept
+milter_protocol = 6
+smtpd_milters = inet:localhost:12345
+non_smtpd_milters = inet:localhost:12345
+
+virtual_mailbox_domains = hash:/etc/postfix/hashmap/domains.cf
+# base path where store mail for localusers not supported by Zoha
+virtual_mailbox_base = /var/lib/mailboxes
+home_mailbox = Maildir/
+virtual_mailbox_maps = hash:/etc/postfix/hashmap/mailboxes.cf
+virtual_alias_maps = hash:/etc/postfix/hashmap/aliases.cf
+
+# We disable verification to prevent you from getting on the backscatter
+disable_vrfy_command = yes
+
+
+# lista adresow email wykorzystywane poprzez "reject_sender_login_mismatch"
+#smtpd_sender_login_maps = hash:/etc/postfix/hashmap/senders.cf
+smtpd_sender_login_maps = hash:/etc/postfix/hashmap/login_map.cf
+
+
+sender_dependent_default_transport_maps = hash:/etc/postfix/hashmap/mail_ip_out.cf
+
+virtual_alias_domains =
+alias_maps = $alias_database
+
+#virtual_destination_concurrency_limit=1
+procmail_destination_recipient_limit=1
+
+transport_maps=hash:/etc/postfix/hashmap/transport.cf
+
+# --------------------------- quota ----------------------------------
+virtual_mailbox_limit_maps = hash:/etc/postfix/hashmap/quota.cf
+virtual_maildir_limit_message = "Skrzynka uzytkownika jest pelna, sprobuj pozniej. Sorry, the user's maildir has overdrawn his diskspace quota, please try again later."
+
+# A maximum limit of a mailbox
+virtual_mailbox_limit = 500000000
+virtual_mailbox_limit_inbox=no
+virtual_maildir_extended = yes
+virtual_mailbox_limit_override = yes
+virtual_overquota_bounce = yes
+virtual_trash_count = yes
+virtual_trash_name = .Trash
+virtual_maildir_filter=no
+
+# --------------------------- quota ----------------------------------
+
+virtual_uid_maps=static:2000
+virtual_gid_maps=static:2000
+virtual_transport = virtual:
+
+# --------------------------- proxy ----------------------------------
+
+# Thanks to the proxy, it does not connect to a given service multiple times, but we use one connection
+#
+#proxy_read_maps = $local_recipient_maps \
+#    $mydestination $virtual_alias_domains $virtual_mailbox_domains $relay_recipient_maps $relay_domains \
+#    $canonical_maps $sender_canonical_maps $recipient_canonical_maps $relocated_maps $transport_maps $mynetworks \
+#    $virtual_mailbox_maps $virtual_alias_maps $virtual_mailbox_limit_maps $smtpd_sender_login_maps
+
+# --------------------------- proxy ----------------------------------
+
+
+
+# ---------------------------------------------------------------------------------------------------
+# --- WE BLOCK INCORRECT SENDER AND RECIPIENT ADDRESSES
+# ---------------------------------------------------------------------------------------------------
+
+#strict_rfc821_envelopes = yes
+unknown_address_reject_code = 550
+
+# ---------------------------------------------------------------------------------------------------
+# ---  WE BLOCK INCORRECT SENDER AND RECIPIENT ADDRESSES
+# ---------------------------------------------------------------------------------------------------
+
+smtpd_helo_restrictions = reject_unauth_pipelining reject_invalid_hostname permit
+
+
+
+# if the free space drops below 1GB we will not accept any more space
+queue_minfree = 102400000
+
+message_size_limit = 404857600
+mailbox_size_limit=  404857600
+
+default_process_limit = 100
+
+# max 20 recipients for 1 email
+smtpd_recipient_limit = 200
+smtpd_error_sleep_time = 5
+smtpd_hard_error_limit = 10
+smtpd_helo_required = yes
+
+smtpd_banner = $myhostname ESMTP $mail_name
+biff = no
+
+append_dot_mydomain = no
+
+header_checks = pcre:/etc/postfix/hashmap/header_checks.pcre
+body_checks = pcre:/etc/postfix/hashmap/body_checks.pcre
+
+
+# add a header to outgoing messages
+smtpd_data_restrictions = check_sender_access regexp:/etc/postfix/hashmap/add_incoming_header.regexp
+
+# ---------------------------------------------------------------------------------------------------
+# ---------------------------------- SMTP AUTHENTICATION --------------------------------------------
+# ---------------------------------------------------------------------------------------------------
+
+# SMTP authentication enabled
+smtpd_sasl_auth_enable = yes
+
+# do we allow connections to legacy email clients (m.in. Outlook Express 4.x)?
+broken_sasl_auth_clients = yes
+
+
+smtpd_sasl_security_options = noanonymous
+smtp_tls_security_level=may
+
+## -- Security and attacks
+smtpd_tls_protocols = !SSLv2, !SSLv3
+smtpd_tls_mandatory_protocols = !SSLv2, !SSLv3
+tlsproxy_tls_protocols = $smtpd_tls_protocols
+smtpd_tls_ciphers = medium
+smtp_tls_ciphers = medium
+
+smtpd_tls_dh1024_param_file=${config_directory}/dh/dh2048.pem
+smtpd_tls_eecdh_grade = strong
+
+# Suggested, not strictly needed:
+#
+smtpd_tls_exclude_ciphers =EXPORT, LOW, MD5, SEED, IDEA, RC2
+smtp_tls_exclude_ciphers = EXPORT, LOW, MD5, aDSS, kECDHe, kECDHr, kDHd, kDHr, SEED, IDEA, RC2
+
+## -- Security and attacks
+
+# ---------------------------------------------------------------------------------------------------
+# ---------------------------------- SSL -------------------------------------------
+# ---------------------------------------------------------------------------------------------------
+
+
+smtpd_use_tls = yes
+smtp_tls_note_starttls_offer = yes
+# Brief diagnostic info for us
+smtpd_tls_loglevel = 0
+# we can force TLS on Authorization ("yes" requires SASL)
+smtpd_tls_auth_only = no
+# "source" of randomness
+tls_random_source = dev:/dev/urandom
+smtpd_tls_security_level = may
+
+# START: if we sign the certificate ourselves -----------------------------------------
+# smtpd_tls_cert_file = /etc/postfix/ssl/smtpd.pem
+# END:if we sign the certificate ourselves -----------------------------------------
+
+# START: SSL first from a certified certificate authority
+# if we have a signed certificate by the appropriate issuer ------------------------------------
+# smtpd_tls_CAfile = /etc/postfix/ssl/cert.pem
+# smtpd_tls_cert_file = /etc/postfix/ssl/cert.crt
+# smtpd_tls_key_file =  /etc/postfix/ssl/cert.key
+
+# if we have a signed certificate by the appropriate issuer ------------------------------------
+# END: SSL first from a certified certificate authority
+
+smtpd_recipient_restrictions =  permit_mynetworks,
+    permit_sasl_authenticated,
+    reject_unauth_destination,
+    check_helo_access pcre:/etc/postfix/hashmap/helo_checks.pcre,
+    check_client_access pcre:/etc/postfix/hashmap/check_clients.pcre,
+    check_sender_access hash:/etc/postfix/hashmap/senders_check.cf,
+    check_policy_service unix:private/spf-policy,    check_recipient_access hash:/etc/postfix/hashmap/rbl_recipent_override.cf,
+    check_client_access hash:/etc/postfix/hashmap/rbl_override.cf
+
+# ===================================================================================================
+# === RULES FOR SENDING MAIL
+# ===================================================================================================
+
+smtpd_sender_restrictions = permit_mynetworks reject_unknown_sender_domain reject_non_fqdn_sender reject_unknown_address reject_sender_login_mismatch  check_sender_access pcre:/etc/postfix/hashmap/check_spammers.pcre
+
+127.0.0.1:9991_timelimit = 10
+
+smtpd_end_of_data_restrictions = check_policy_service { inet:127.0.0.1:9991, timeout=5s, default_action=DUNNO }
+
+unverified_recipient_reject_code = 550
+unverified_sender_reject_code = 550
+unknown_local_recipient_reject_code = 550
+
+canonical_maps = hash:/etc/postfix/hashmap/canonical.cf
+readme_directory = /usr/share/doc/postfix
+html_directory = /usr/share/doc/postfix/html

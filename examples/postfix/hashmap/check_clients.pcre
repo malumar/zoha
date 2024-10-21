@@ -1,0 +1,5 @@
+# check rev dns incoming server connection and eventually reject
+# /regular_expression/<TAB><TAB>REJECT reason_message
+
+# e.g.
+# /badguy$/     REJECT spam source

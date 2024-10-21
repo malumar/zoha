@@ -1,0 +1,5 @@
+john@example.tld        lmtp:zoha-ip:port
+office@example          lmtp:zoha-ip:port
+liam@example.tld        lmtp:zoha-ip:port
+lisa@example.tld        lmtp:zoha-ip:port
+wlilliam@example.tld    lmtp:zoha-ip:port
