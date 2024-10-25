@@ -247,8 +247,8 @@ func FilterSendCopyToEmails(logger *slog.Logger, mb *api.Mailbox, supervisor api
 	ret := make([]string, count)
 	var i int
 
-	for emial, _ := range uniq {
-		ret[i] = emial
+	for email, _ := range uniq {
+		ret[i] = email
 		i++
 	}
 
