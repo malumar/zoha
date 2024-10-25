@@ -20,6 +20,7 @@ func TestDelivery(t *testing.T) {
 	s, err := smtp.Dial(data.LmtpListenAddress)
 	if err != nil {
 		t.Error(err.Error())
+		return
 	}
 	if err := s.Hello("ninja"); err != nil {
 		t.Error(err.Error())

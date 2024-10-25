@@ -543,6 +543,11 @@ type TestSupervisor struct {
 	hostname string
 }
 
+func (self *TestSupervisor) GetAbsoluteMaildirPath(mb *api.Mailbox) string {
+	//TODO implement me
+	panic("implement me")
+}
+
 func (self *TestSupervisor) Authorization(username string, password string, service api.Service, useSsl api.Maybe) *api.Mailbox {
 	//TODO implement me
 	panic("implement me")
