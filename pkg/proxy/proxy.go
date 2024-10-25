@@ -53,7 +53,7 @@ func (self *Server) Run() error {
 
 func (self *Server) authRequst(resp http.ResponseWriter, req *http.Request) {
 
-	c := self.getClient(resp, req)
+	c := self.getClient(req)
 	if len(c.Login) == 0 || len(c.Password) == 0 {
 		logger.Error("no login or password entered",
 			"user", c.Login, "password", len(c.Password) > 0)
@@ -97,7 +97,7 @@ func (self *Server) authRequst(resp http.ResponseWriter, req *http.Request) {
 
 }
 
-func (self *Server) getClient(resp http.ResponseWriter, req *http.Request) *client {
+func (self *Server) getClient(req *http.Request) *client {
 	cl := client{}
 
 	cl.Login = req.Header.Get("Auth-User")
