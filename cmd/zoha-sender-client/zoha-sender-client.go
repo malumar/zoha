@@ -242,7 +242,7 @@ func toPostfix(f *os.File, supervisor api.Supervisor, from, to string) error {
 	}
 
 	closer := make(chan struct{}, 2)
-	go copy(closer, wc, f)
+	go copier(closer, wc, f)
 
 	<-closer
 
@@ -253,7 +253,7 @@ func toPostfix(f *os.File, supervisor api.Supervisor, from, to string) error {
 	return nil
 }
 
-func copy(closer chan struct{}, dst io.Writer, src io.Reader) {
+func copier(closer chan struct{}, dst io.Writer, src io.Reader) {
 	_, _ = io.Copy(dst, src)
 	closer <- struct{}{} // connection is closed, send signal to stop proxy
 }
