@@ -18,7 +18,7 @@ type Mailbox struct {
 	DomainLowerAscii     string
 	FullNameOfEmailOwner string
 
-	// Clean password
+	// Salted password
 	Password string
 
 	// mount point on disk e.g. /mnt/drive2

@@ -19,7 +19,7 @@ type Session interface {
 	// IsAllowSendAs Can a user send a message from this address only to logged in users?
 	IsAllowSendAs(addressEmailInAsciiLowerCase AddressEmail) (bool, error)
 
-	// OnAuthorization User authorization
+	// OnAuthorization Login authorization
 	// @username is already IDN decoded value as lowercase ASCII
 	// @password is plain text value received from client (we don't support anything other than plain text at this time)
 	// @service service type

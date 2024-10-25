@@ -1,4 +1,6 @@
-package main
+// very simple implementation of mtp.Session.
+// rather for testing purposes
+package simplelmtpsession
 
 import (
 	"errors"
@@ -38,7 +40,7 @@ var errNewMessageFromNotImplemented = errors.New("Not implemented New message fr
 var errAddRecipientNotImplemented = errors.New("Not implemented Add Recipient")
 var errOnReceivingMessage = errors.New("OnReceivingMessageErr")
 
-func NewLmtpSession(supervisor *Supervisor, l *slog.Logger) *SessionImpl {
+func NewLmtpSession(supervisor api.MaildirSupervisor, l *slog.Logger) *SessionImpl {
 	return &SessionImpl{
 		logger:                      l,
 		supervisor:                  supervisor,
@@ -51,7 +53,7 @@ func NewLmtpSession(supervisor *Supervisor, l *slog.Logger) *SessionImpl {
 
 type SessionImpl struct {
 	logger                      *slog.Logger
-	supervisor                  *Supervisor
+	supervisor                  api.MaildirSupervisor
 	maxMessageSize              uint64
 	allowSendFrom               []string
 	senderClassification        SenderEmailClassification
@@ -83,7 +85,7 @@ func (self *SessionImpl) OnAuthorization(username string, password string, servi
 	self.loggedIn = true
 
 	// If you have enabled the possibility of sending messages from this mailbox,
-	// add an email address to the allowed senders
+	// add an email LmtpListenAddress to the allowed senders
 	if mb.SmtpOutEnabled {
 		self.allowSendFrom = append(self.allowSendFrom, mb.EmailLowerAscii)
 	}
@@ -91,7 +93,7 @@ func (self *SessionImpl) OnAuthorization(username string, password string, servi
 	return true, nil
 }
 
-// IsAllowSendAs The server knows that you are logged in, the question is whether you can use this address as a sender
+// IsAllowSendAs The server knows that you are logged in, the question is whether you can use this LmtpListenAddress as a sender
 func (self *SessionImpl) IsAllowSendAs(addressEmailInAsciiLowerCase mtp.AddressEmail) (bool, error) {
 	if self.loggedIn {
 		from := addressEmailInAsciiLowerCase.String()
@@ -116,7 +118,7 @@ func (self *SessionImpl) From() mtp.AddressEmail {
 	return self.from
 }
 func (self *SessionImpl) AcceptMessageFromEmail(senderAscii mtp.AddressEmail) error {
-	// note senderAscii can be an empty address, so it will mean that it is an address to mailer_daemonmailer_filter
+	// note senderAscii can be an empty LmtpListenAddress, so it will mean that it is an LmtpListenAddress to mailer_daemonmailer_filter
 	// from your host and you need to add your host at the end or treat it as empty
 	if senderAscii.IsEmpty() {
 		//
@@ -125,8 +127,7 @@ func (self *SessionImpl) AcceptMessageFromEmail(senderAscii mtp.AddressEmail) er
 	switch senderAscii.String() {
 	case "some-email-that-we-know-is-a-spammer":
 		return mtp.NewRejectErr(mtp.YouSpamerGoAwayRejectErr)
-		break
-	case "email-address-that-sends-to-us-too often":
+	case "email-LmtpListenAddress-that-sends-to-us-too often":
 		return mtp.NewRejectErr(mtp.TooManyConnectionsRejectErr)
 	}
 
@@ -139,20 +140,20 @@ func (self *SessionImpl) AcceptRecipient(recipientAscii mtp.AddressEmail) error 
 	re := recipientAscii.String()
 	mb := self.supervisor.FindMailbox(re)
 	if mb == nil {
-		return fmt.Errorf("User %s not found", re)
+		return fmt.Errorf("Login %s not found", re)
 	}
 
 	if mb.ImapHostname != self.supervisor.Hostname() {
 		//if mb.ImapHostname != self.hostname {
 		self.logger.Info(fmt.Sprintf("Email assigned to '%self' and we handle '%self'",
 			mb.ImapHostname, self.supervisor.Hostname()))
-		return fmt.Errorf("User %self cannot receive messages at this time, "+
+		return fmt.Errorf("Login %self cannot receive messages at this time, "+
 			"is assigned to another host / Uzytkownik %self nie moze w tej chwili odbierac wiadomosci,"+
 			" sprobuj pozniej, jest przypisany do innego hosta", re, re)
 	}
 
 	if !mb.SmtpInEnabled {
-		return fmt.Errorf("User %self cannot receive messages at this time / "+
+		return fmt.Errorf("Login %self cannot receive messages at this time / "+
 			"Uzytkownik %self nie moze w tej chwili odbierac wiadomosci, sprobuj pozniej", re, re)
 	}
 
@@ -183,14 +184,14 @@ func (self *SessionImpl) clearRecipients() {
 }
 
 func (self *SessionImpl) AcceptMessage(message *mail.Message) error {
-	// chec sie nam tu filtrowaC?
-	// bez sensu odrazu do skrzynki
+	// want to filter here? pointless immediately to the mailbox
+	// todo: place your filters here
 	return nil
 }
 
 func (self *SessionImpl) ProcessDelivery(proxy mtp.MessageReceiverProxy, delivery mtp.Delivery,
 	reverseHostname string) error {
-	// 4 gwiazdki lub więcej
+	// 4 stars or more
 	spamCount := len(proxy.GetMessage().Header.Get("X-Spam-Level"))
 
 	mb := self.getMailboxFromDelivery(delivery)
@@ -203,7 +204,7 @@ func (self *SessionImpl) ProcessDelivery(proxy mtp.MessageReceiverProxy, deliver
 
 	fromMailerDaemon := false
 	if strings.ToLower(delivery.From.String()) == strings.ToLower(self.supervisor.MailerDaemonEmailAddress()) {
-		fromMailerDaemon = false
+		fromMailerDaemon = true
 	}
 
 	if !fromMailerDaemon {
@@ -239,8 +240,8 @@ func (self *SessionImpl) ProcessDelivery(proxy mtp.MessageReceiverProxy, deliver
 		if mb.MoveToSpam {
 			// FIXME if it contains RCVD_IN_MSPIKE_WL it means that the sender is OK and if you
 			// 		 have doubts mark it as a good sender
-			// FIXME whiteliscie mozna wiezyc tylko gdy jest VALID DKIM lub SPF bez tego nie powinieś wierzyć tylko
-			//		 na podstawie adresu email nadawcy, ponieważ można to sfabrykować
+			// FIXME whitelist can only be known if it is VALID DKIM or SPF without it you should not believe
+			// 		 just based on the sender's email address because it can be fabricated
 			delivery.Mailbox = ".SPAM"
 		}
 		break

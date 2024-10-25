@@ -10,7 +10,7 @@ myorigin = example.tld
 smtputf8_enable = yes
 smtp_connection_cache_time_limit = 6s
 
-mydomain = smtp.example.tld
+mydomain = mailsrv.example.tld
 
 mydestination = $myhostname $mydomain localhost localhost.$mydomain node1
 
@@ -173,14 +173,14 @@ tls_random_source = dev:/dev/urandom
 smtpd_tls_security_level = may
 
 # START: if we sign the certificate ourselves -----------------------------------------
-# smtpd_tls_cert_file = /etc/postfix/ssl/smtpd.pem
+# smtpd_tls_cert_file = /opt/zoha/conf/ssl/smtpd.pem
 # END:if we sign the certificate ourselves -----------------------------------------
 
 # START: SSL first from a certified certificate authority
 # if we have a signed certificate by the appropriate issuer ------------------------------------
-# smtpd_tls_CAfile = /etc/postfix/ssl/cert.pem
-# smtpd_tls_cert_file = /etc/postfix/ssl/cert.crt
-# smtpd_tls_key_file =  /etc/postfix/ssl/cert.key
+# smtpd_tls_CAfile = /opt/zoha/conf/ssl/cert.pem
+# smtpd_tls_cert_file = /opt/zoha/conf/ssl/cert.crt
+# smtpd_tls_key_file =  /opt/zoha/conf/ssl/cert.key
 
 # if we have a signed certificate by the appropriate issuer ------------------------------------
 # END: SSL first from a certified certificate authority

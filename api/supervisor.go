@@ -1,11 +1,25 @@
 package api
 
+type MaildirStorage interface {
+	// GenerateNextSpooledMessageName Generate a new email ID to be stored in spool
+	GenerateNextSpooledMessageName() string
+
+	// GetAbsoluteMaildirPath build maildir path prefix
+	GetAbsoluteMaildirPath(mb *Mailbox) string
+}
+
 type Supervisor interface {
 	// Hostname of your node, this name must coincide with the value of Mailbox.ImapHostname,
 	// if it is different, we will not accept messages e.g. via LMTP,
 	// because it means that it is intended for another node and this should be directed
 	// to the appropriate LMTP at the Postfix level
 	Hostname() string
+
+	// MailerDaemonEmailAddress returns what the MAILER_DAEMON address is,
+	// i.e. in the case of empty email addresses sent by Postfix,
+	// it must be written in lowercase and in ASCII format during the returns
+	MailerDaemonEmailAddress() string
+
 	// Authorization return immutable mailbox struct if it is enabled
 	// @service which login service
 	// @useSsl whether the client is using an SSL connection
@@ -13,14 +27,6 @@ type Supervisor interface {
 
 	// FindMailbox return immutable mailbox struct or nil, don't check it is enabled
 	FindMailbox(name string) *Mailbox
-
-	// MailerDaemonEmailAddress returns what the MAILER_DAEMON address is,
-	// i.e. in the case of empty email addresses sent by Postfix,
-	// it must be written in lowercase and in ASCII format during the returns
-	MailerDaemonEmailAddress() string
-
-	// GenerateNextSpooledMessageName Generate a new email ID to be stored in spool
-	GenerateNextSpooledMessageName() string
 
 	// IsLocalDomain Is the indicated domain in our resources? More specifically,
 	// whether we host at least one mailbox on this domain
@@ -37,4 +43,10 @@ type Supervisor interface {
 	// or you suspect that your configurations are out of sync, return Maybe.DontKnow,
 	// this will cause us to ask the sender to resend the shipment at a later date
 	IsLocalEmail(emailAsciiLowerCase string) Maybe
+}
+
+// MaildirSupervisor is Supervisor support mail storage
+type MaildirSupervisor interface {
+	MaildirStorage
+	Supervisor
 }

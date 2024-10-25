@@ -100,7 +100,7 @@ func AllowAuthorize(service api.Service, mb *api.Mailbox, useSsl api.Maybe) bool
 }
 
 func SendAllRequiredCopies(logger *slog.Logger, fromMailerDaemon bool, originalRecipient string, mb *api.Mailbox,
-	d *Delivery, proxy MessageReceiverProxy, supervisor api.Supervisor) {
+	d *Delivery, proxy MessageReceiverProxy, supervisor api.MaildirSupervisor) {
 	sendCopiesTo := GetSendCopyTo(logger, fromMailerDaemon, mb, d, proxy, supervisor)
 	scl := len(sendCopiesTo)
 	if scl == 0 {

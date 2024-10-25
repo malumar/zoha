@@ -93,6 +93,7 @@ func NewListener(address string, maxErrorsPerConnection int, maxConnections int,
 
 type SupervisorExt interface {
 	api.Supervisor
+	api.MaildirStorage
 
 	// OpenSession Opening or ending the session.
 	// If we don't want to connect, we need to give the content to rejectMessage
