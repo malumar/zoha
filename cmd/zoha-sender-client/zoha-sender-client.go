@@ -1,4 +1,5 @@
-// Forwards messages created by the slug copy to commands, or aliases, to the main zoha-sender-server
+// Forwards messages created by the service "send copy to" commands, autoresponder
+// or aliases, to the main zoha-sender-server
 package main
 
 import (

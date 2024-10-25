@@ -14,8 +14,6 @@ import (
 
 var logger = slog.With("package", "zoha-sender-server")
 
-var allowIps = make([]string, 0)
-
 func main() {
 	var allowlist mslices.SliceOfFlag[string]
 
@@ -66,15 +64,15 @@ func main() {
 			}
 			defer conn2.Close()
 			closer := make(chan struct{}, 2)
-			go copy(closer, conn2, conn)
-			go copy(closer, conn, conn2)
+			go copier(closer, conn2, conn)
+			go copier(closer, conn, conn2)
 			<-closer
 			logger.Info("connection completed", "client", conn.RemoteAddr())
 		}()
 	}
 }
 
-func copy(closer chan struct{}, dst io.Writer, src io.Reader) {
+func copier(closer chan struct{}, dst io.Writer, src io.Reader) {
 	_, _ = io.Copy(dst, src)
 	closer <- struct{}{} // connection is closed, send signal to stop proxy
 }
