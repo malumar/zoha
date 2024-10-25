@@ -22,26 +22,26 @@ import (
 
 const PauseInSecondsIfErrorOccurred = 5
 
-const basePath = "/tmp/testenv/spool/mail"
-
-var logger = slog.With("package", "sender")
-
-// var hostInstance *host.HostInstance
+var logger = slog.With("package", "zoha-sender-server")
 
 func main() {
 
-	// We monitor only locally - because zoha-sender is on the mail server where zoha-lmtp is
-	//	if hi, err := host.New(context.TODO(), host.OpenDb|host.MonitLocalFileDb, "sendsnt"); err != nil {
+	// fixme supervisor don't have implemented supervisor.MainSenderNode()
 	supervisor := example.NewDummySupervisor(context.Background(), func(supervisor api.MaildirSupervisor, l *slog.Logger) mtp.Session {
 		return simplelmtpsession.NewLmtpSession(supervisor, l)
 	})
 
-	logger.Info("ZohaSenderClient started")
+	logger.Info("ZohaSenderClient started", "spool", supervisor.AbsoluteSpoolPath())
 	defer logger.Info("ZohaSenderClient exited")
+
+	if len(supervisor.AbsoluteSpoolPath()) == 0 {
+		logger.Error("spool path is empty")
+		os.Exit(1)
+	}
 
 	for {
 		logger.Info("I'm looking for emails that need to be sent to postfix")
-		dirs, err := os.ReadDir(basePath)
+		dirs, err := os.ReadDir(supervisor.AbsoluteSpoolPath())
 		if err != nil {
 			logger.Error("read error", "err", err.Error())
 			time.Sleep(time.Second * PauseInSecondsIfErrorOccurred)
@@ -63,8 +63,8 @@ func main() {
 
 }
 
-func forwardMessagesPendingToSubmissions(supervisor api.Supervisor, inDir string) (founded int) {
-	pth := filepath.Join(basePath, inDir)
+func forwardMessagesPendingToSubmissions(supervisor api.MaildirSupervisor, inDir string) (founded int) {
+	pth := filepath.Join(supervisor.AbsoluteSpoolPath(), inDir)
 	files, err := os.ReadDir(pth)
 	if err != nil {
 		logger.Error("forward read error w %ss %v", pth, err.Error())
@@ -129,10 +129,14 @@ func sendMailToPostfix(supervisor api.Supervisor, filename string) (retErr error
 	}
 	defer func() {
 		if finishHim {
-			f.Truncate(0)
+			if err := f.Truncate(0); err != nil {
+				logger.Error("can't truncate message file", "filename", filename, "err", err)
+			}
 		}
 
-		f.Close()
+		if err := f.Close(); err != nil {
+			logger.Error("can't close message, maybe already closed?", "filename", filename, "err", err)
+		}
 		if finishHim {
 			if err := os.Remove(filename); err != nil {
 				logger.Error("i can't remove message",

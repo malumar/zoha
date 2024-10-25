@@ -6,6 +6,10 @@ type MaildirStorage interface {
 
 	// GetAbsoluteMaildirPath build maildir path prefix
 	GetAbsoluteMaildirPath(mb *Mailbox) string
+
+	// AbsoluteSpoolPath absolute path, pointing to the directory where messages queued
+	// for sending to MailSenderNode() are stored. Important, check that it is not empty
+	AbsoluteSpoolPath() string
 }
 
 type Supervisor interface {

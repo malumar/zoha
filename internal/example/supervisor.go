@@ -55,6 +55,10 @@ type SupervisorExample struct {
 	mailboxes             []api.Mailbox
 }
 
+func (self *SupervisorExample) AbsoluteSpoolPath() string {
+	return self.defaultMailStorePath
+}
+
 func (self *SupervisorExample) MainSenderNode() string {
 	// todo get value from NATS
 	panic("not implemented")
