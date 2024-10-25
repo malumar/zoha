@@ -1,3 +1,4 @@
+// Forwards messages created by the slug copy to commands, or aliases, to the main zoha-sender-server
 package main
 
 import (

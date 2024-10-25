@@ -1,3 +1,4 @@
+// A proxy client for nginx that forwards incoming traffic to the appropriate IMAP, POP3, SMTP instances
 package main
 
 import (

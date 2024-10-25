@@ -1,3 +1,6 @@
+// A master Sender server, forwarding messages from Zoha-Sender-Client to the main MTA
+// (e.g. the main instance of postfix), here the whole fun starts again and again
+// the MTA can forward the message to ZOHA-LMTP
 package main
 
 import (

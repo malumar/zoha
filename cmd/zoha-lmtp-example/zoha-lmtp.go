@@ -1,3 +1,4 @@
+// An example LMTP client that should be installed on each node that stores EML files
 package main
 
 import (
