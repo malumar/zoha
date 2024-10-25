@@ -51,21 +51,19 @@ func (self *Server) Run() error {
 	return nil
 }
 
-var ifBlankImapTransferToLocal = true
-
 func (self *Server) authRequst(resp http.ResponseWriter, req *http.Request) {
 
 	c := self.getClient(resp, req)
 	if len(c.Login) == 0 || len(c.Password) == 0 {
 		logger.Error("no login or password entered",
 			"user", c.Login, "password", len(c.Password) > 0)
-		self.invalidLoginOrPassword(c.Ip, c.Login, resp, req)
+		self.invalidLoginOrPassword(c.Ip, c.Login, resp)
 		return
 	}
 
 	if len(c.Protocol) == 0 {
 		logger.Error("erroneous protocol", "user", c.Login, "protocol", c.Protocol)
-		self.invalidProtocol(c.Ip, c.Login, resp, req)
+		self.invalidProtocol(c.Ip, c.Login, resp)
 		return
 	}
 
@@ -73,7 +71,7 @@ func (self *Server) authRequst(resp http.ResponseWriter, req *http.Request) {
 
 	if service, found := self.supportedProtocols[c.Protocol]; !found {
 		slog.Error("not supported protocol", "user", c.Login, "protocol", c.Protocol)
-		self.invalidProtocol(c.Ip, c.Login, resp, req)
+		self.invalidProtocol(c.Ip, c.Login, resp)
 		return
 	} else {
 		dest = self.supervisor.Authorization(c.Login, c.Password, service, c.UseSsl)
@@ -81,7 +79,7 @@ func (self *Server) authRequst(resp http.ResponseWriter, req *http.Request) {
 
 	if dest == nil {
 		slog.Error("I can't authorize", "protocol", c.Protocol, "user", c.Login)
-		self.invalidLoginOrPassword(c.Ip, c.Login, resp, req)
+		self.invalidLoginOrPassword(c.Ip, c.Login, resp)
 		return
 	}
 
@@ -91,11 +89,11 @@ func (self *Server) authRequst(resp http.ResponseWriter, req *http.Request) {
 		logger.Error("i can't authorize no destination host or port",
 			"account", dest.Account, "email", dest.EmailLowerAscii,
 			"protocol", c.Protocol, "destHost", host, "destPort", port)
-		self.fail(c.Ip, c.Login, "Denied access to the service "+c.Protocol, resp, req)
+		self.fail(c.Ip, c.Login, "Denied access to the service "+c.Protocol, resp)
 		return
 	}
 
-	self.pass(c.Ip, dest, host, port, resp, req)
+	self.pass(c.Ip, dest, host, port, resp)
 
 }
 
@@ -127,12 +125,12 @@ func (self *Server) getClient(resp http.ResponseWriter, req *http.Request) *clie
 	cl.Password = strings.Replace(cl.Password, "%20", " ", -1)
 	cl.Password = strings.Replace(cl.Password, "%25", "%", -1)
 
-	cl.Protocol = self.getProtocol(resp, req, &cl)
+	cl.Protocol = self.getProtocol(req)
 
 	return &cl
 }
 
-func (self *Server) getProtocol(resp http.ResponseWriter, req *http.Request, connectedClient *client) string {
+func (self *Server) getProtocol(req *http.Request) string {
 	protocol := req.Header.Get("Auth-Protocol")
 	if len(protocol) == 0 {
 		protocol = req.Header.Get("Http_auth_protocol")
@@ -140,21 +138,21 @@ func (self *Server) getProtocol(resp http.ResponseWriter, req *http.Request, con
 	return protocol
 }
 
-func (self *Server) invalidProtocol(clientIp, user string, resp http.ResponseWriter, req *http.Request) {
-	self.fail(clientIp, user, InvalidProtocol, resp, req)
+func (self *Server) invalidProtocol(clientIp, user string, resp http.ResponseWriter) {
+	self.fail(clientIp, user, InvalidProtocol, resp)
 }
 
-func (self *Server) invalidLoginOrPassword(clientIp, user string, resp http.ResponseWriter, req *http.Request) {
-	self.fail(clientIp, user, InvalidLoginOrPasswordResp, resp, req)
+func (self *Server) invalidLoginOrPassword(clientIp, user string, resp http.ResponseWriter) {
+	self.fail(clientIp, user, InvalidLoginOrPasswordResp, resp)
 }
 
-func (self *Server) fail(clientIp, user string, message string, resp http.ResponseWriter, req *http.Request) {
+func (self *Server) fail(clientIp, user string, message string, resp http.ResponseWriter) {
 	logger.Info("clientIp: %s, user: %s odmowa:%s ", clientIp, user, message)
 	resp.Header().Set("Auth-Status", message)
 	return
 }
 
-func (self *Server) pass(clientIp string, dest *api.Mailbox, host, port string, resp http.ResponseWriter, req *http.Request) {
+func (self *Server) pass(clientIp string, dest *api.Mailbox, host, port string, resp http.ResponseWriter) {
 	resp.Header().Set("Auth-Status", "OK")
 	resp.Header().Set("Auth-Server", host)
 	resp.Header().Set("Auth-Port", port)

@@ -457,30 +457,11 @@ func eqErrFromString(t *testing.T, err error, expected string, info string) {
 
 }
 
-func e(s string, a ...interface{}) error {
-	return fmt.Errorf(s, a...)
-}
 func s(s string, a ...interface{}) string {
 	return fmt.Sprintf(s, a...)
 }
 
-func stringToErr(val string) error {
-	if val == "" {
-		return nil
-	}
-
-	return fmt.Errorf(val)
-}
-
 func stringIf(value bool, ifTrue string, ifElse string) string {
-	if value {
-		return ifTrue
-	} else {
-		return ifElse
-	}
-}
-
-func errorIf(value bool, ifTrue error, ifElse error) error {
 	if value {
 		return ifTrue
 	} else {
@@ -716,8 +697,7 @@ func (s SessionImpl) Close() {
 }
 
 func (s SessionImpl) AcceptMessage(message *mail.Message) error {
-	// chec sie nam tu filtrowaC?
-	// bez sensu odrazu do skrzynki
+	// place filtering functions here
 	return nil
 }
 
