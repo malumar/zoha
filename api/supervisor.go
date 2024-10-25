@@ -43,9 +43,15 @@ type Supervisor interface {
 	// or you suspect that your configurations are out of sync, return Maybe.DontKnow,
 	// this will cause us to ask the sender to resend the shipment at a later date
 	IsLocalEmail(emailAsciiLowerCase string) Maybe
+
+	// MainSenderNode main host and port of zoha-sender-server
+	// the host must be accessible from each ZOHA-LMTP instance, so it must be a public or tunneled host
+	// ZohaSenderClient uses MainSenderNode as an intermediary node to send messages directed to aliases
+	// or in the case of an autoresponder
+	MainSenderNode() string
 }
 
-// MaildirSupervisor is Supervisor support mail storage
+// MaildirSupervisor is a Supervisor with mail storage support
 type MaildirSupervisor interface {
 	MaildirStorage
 	Supervisor

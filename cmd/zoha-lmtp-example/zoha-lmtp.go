@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	example.ZohaLmtp(func(supervisor api.MaildirSupervisor, l *slog.Logger) mtp.Session {
+	example.ZohaLmtp((func(supervisor api.MaildirSupervisor, l *slog.Logger) mtp.Session {
 		return simplelmtpsession.NewLmtpSession(supervisor, l)
-	})
+	}))
 }

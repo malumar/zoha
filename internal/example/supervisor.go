@@ -21,14 +21,14 @@ func NewDummyMaildirSupervisor(ctx context.Context, sessionFactoryHandler Sessio
 		data.MailerDaemon, data.ReverseHostname, defaultMailStorePath, spoolPath)
 }
 
-func NewDummySupervisor(ctx context.Context, sessionFactoryHandler SessionFactoryHandler) api.Supervisor {
+func NewDummySupervisor(ctx context.Context, sessionFactoryHandler SessionFactoryHandler) *SupervisorExample {
 	return NewSupervisor(ctx, sessionFactoryHandler,
 		data.NewData(data.ReverseHostname, SaltPassword),
 		data.MailerDaemon, data.ReverseHostname)
 }
 
 func NewSupervisor(ctx context.Context, sessionFactoryHandler SessionFactoryHandler, mailboxes []api.Mailbox,
-	mailerDaemon string, hostname string) api.Supervisor {
+	mailerDaemon string, hostname string) *SupervisorExample {
 	return New(ctx, sessionFactoryHandler, mailboxes, mailerDaemon, hostname, "", "")
 }
 
@@ -53,6 +53,11 @@ type SupervisorExample struct {
 	hostname              string
 	defaultMailStorePath  string
 	mailboxes             []api.Mailbox
+}
+
+func (self *SupervisorExample) MainSenderNode() string {
+	// todo get value from NATS
+	panic("not implemented")
 }
 
 func (self *SupervisorExample) GetAbsoluteMaildirPath(mb *api.Mailbox) string {
