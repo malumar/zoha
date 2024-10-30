@@ -1,12 +1,12 @@
 package api
 
-// Extended bool
+// Maybe Extended bool
 type Maybe int
 
 const (
 	No Maybe = iota
 	Yes
-	// W chwili obecnej nie jestem tego w stanie sprawdzić
+	// DontKnow W chwili obecnej nie jestem tego w stanie sprawdzić
 	DontKnow
 )
 

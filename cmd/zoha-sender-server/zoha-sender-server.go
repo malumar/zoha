@@ -9,6 +9,7 @@ import (
 	"io"
 	"log/slog"
 	"net"
+	"os"
 	"strings"
 )
 
@@ -34,7 +35,8 @@ func main() {
 	logger.Info("Listening & Proxying", "listen", *localAddr, "proxying", *remoteAddr)
 	listener, err := net.Listen("tcp", *localAddr)
 	if err != nil {
-		panic(err)
+		logger.Error("can't listen", "err", err)
+		os.Exit(1)
 	}
 	for {
 		conn, err := listener.Accept()

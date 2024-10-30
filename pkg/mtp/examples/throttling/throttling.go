@@ -22,7 +22,7 @@ func main() {
 	for i := 0; i < 20; i++ {
 		// you need to slow down the program because it runs too fast
 		time.Sleep(1 * time.Millisecond)
-		now := (time.Now().UnixNano() / int64(time.Millisecond))
+		now := time.Now().UnixNano() / int64(time.Millisecond)
 		lastTime, allow := rl.Add()
 		fmt.Println(i, "last time:", lastTime, "allow", allow, now-last)
 		last = now
@@ -38,21 +38,7 @@ func NewRateLimiter(limit int, interval int64) RateLimiter {
 	}
 }
 
-/*
-long now = System.currentTimeMillis();
-// more token are released since last request
-available += (now-lastTimeStamp)*1.0/interval*limit;
-if (available>limit)
-available = limit;
-
-if (available<1)
-return false;
-else {
-available--;
-lastTimeStamp = now;
-return true;
-
-*/
+// Add /*
 func (r *RateLimiter) Add() (int64, bool) {
 	// the question is whether it needs to be divided by milliseconds (because we want the result in milliseconds)
 	now := time.Now().UnixNano() / int64(time.Millisecond)

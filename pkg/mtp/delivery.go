@@ -178,7 +178,7 @@ func DeliverySetHeader(d *Delivery, name string, value string, first bool) {
 
 func (d *Delivery) Close() {
 
-	for k, _ := range d.Flags {
+	for k := range d.Flags {
 		delete(d.Flags, k)
 	}
 	d.Flags = nil

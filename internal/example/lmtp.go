@@ -10,7 +10,7 @@ import (
 	"path/filepath"
 )
 
-// Example of ZohaLmtp
+// ZohaLmtp Example of ZohaLmtp
 func ZohaLmtp(sessionFactoryHandler SessionFactoryHandler) {
 	storagePath, err := os.UserHomeDir()
 	if err != nil {

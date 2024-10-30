@@ -2,7 +2,7 @@ package mtp
 
 import "sync/atomic"
 
-// The needs of the program used should not be typical metrics,
+// Metrics The needs of the program used should not be typical metrics,
 // they are data that are intended to speed up the program's operation
 // e.g. for Prometheus
 type Metrics struct {

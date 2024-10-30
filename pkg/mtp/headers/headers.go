@@ -16,13 +16,13 @@ const (
 	*/
 	DeliveredTo = "Delivered-To"
 
-	// On which server we saved the file (hostname)
+	// XStoredAt On which server we saved the file (hostname)
 	XStoredAt = "X-Stored-At"
-	// Tags to recognize the message type
+	// XServerosTag Tags to recognize the message type
 	// [TAG][TAG]
 	XServerosTag = "X-Serveros-Tag"
 	XAction      = "X-Action"
 
-	// fixme we should replace this with DeliveredTo - because that header seems to meet this assumption
+	// XLoop fixme we should replace this with DeliveredTo - because that header seems to meet this assumption
 	XLoop = "X-Loop"
 )

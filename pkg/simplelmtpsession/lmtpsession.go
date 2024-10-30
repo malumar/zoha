@@ -1,4 +1,4 @@
-// very simple implementation of mtp.Session.
+// Package simplelmtpsession very simple implementation of mtp.Session.
 // rather for testing purposes
 package simplelmtpsession
 
@@ -24,7 +24,7 @@ const (
 
 type SenderEmailClassification int
 
-// max message size in megabytes
+// MaxSingelMessageSize max message size in megabytes
 const MaxSingelMessageSize uint64 = 25 * (1024 * 1024)
 const (
 	SenderEmailNotClassified = iota
@@ -34,10 +34,10 @@ const (
 	SenderEmailIsAdvertiser
 )
 
-var errAuthNotImplemented = errors.New("Not implemented Auth")
+var errAuthNotImplemented = errors.New("not implemented Auth")
 
-var errNewMessageFromNotImplemented = errors.New("Not implemented New message from")
-var errAddRecipientNotImplemented = errors.New("Not implemented Add Recipient")
+var errNewMessageFromNotImplemented = errors.New("not implemented New message from")
+var errAddRecipientNotImplemented = errors.New("not implemented Add Recipient")
 var errOnReceivingMessage = errors.New("OnReceivingMessageErr")
 
 func NewLmtpSession(supervisor api.MaildirSupervisor, l *slog.Logger) *SessionImpl {
@@ -140,20 +140,20 @@ func (self *SessionImpl) AcceptRecipient(recipientAscii mtp.AddressEmail) error 
 	re := recipientAscii.String()
 	mb := self.supervisor.FindMailbox(re)
 	if mb == nil {
-		return fmt.Errorf("Login %s not found", re)
+		return fmt.Errorf("login %s not found", re)
 	}
 
 	if mb.ImapHostname != self.supervisor.Hostname() {
 		//if mb.ImapHostname != self.hostname {
 		self.logger.Info(fmt.Sprintf("Email assigned to '%self' and we handle '%self'",
 			mb.ImapHostname, self.supervisor.Hostname()))
-		return fmt.Errorf("Login %self cannot receive messages at this time, "+
+		return fmt.Errorf("login %self cannot receive messages at this time, "+
 			"is assigned to another host / Uzytkownik %self nie moze w tej chwili odbierac wiadomosci,"+
 			" sprobuj pozniej, jest przypisany do innego hosta", re, re)
 	}
 
 	if !mb.SmtpInEnabled {
-		return fmt.Errorf("Login %self cannot receive messages at this time / "+
+		return fmt.Errorf("login %self cannot receive messages at this time / "+
 			"Uzytkownik %self nie moze w tej chwili odbierac wiadomosci, sprobuj pozniej", re, re)
 	}
 
@@ -177,7 +177,7 @@ func (self *SessionImpl) Close() {
 func (self *SessionImpl) clearRecipients() {
 	self.recipients = nil
 
-	for i, _ := range self.recipientsMb {
+	for i := range self.recipientsMb {
 		self.recipientsMb[i] = nil
 	}
 	self.recipientsMb = nil

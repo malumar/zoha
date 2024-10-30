@@ -40,7 +40,7 @@ func main() {
 		logger.Error("spool path is empty")
 		os.Exit(1)
 	}
-
+	var foundFiles int
 	for {
 		logger.Info("I'm looking for emails that need to be sent to postfix")
 		dirs, err := os.ReadDir(supervisor.AbsoluteSpoolPath())
@@ -65,148 +65,165 @@ func main() {
 
 }
 
-func forwardMessagesPendingToSubmissions(supervisor api.MaildirSupervisor, inDir string) (founded int) {
+func forwardMessagesPendingToSubmissions(supervisor api.MaildirSupervisor, inDir string) (found int) {
 	pth := filepath.Join(supervisor.AbsoluteSpoolPath(), inDir)
 	files, err := os.ReadDir(pth)
 	if err != nil {
-		logger.Error("forward read error w %ss %v", pth, err.Error())
+		logger.Error("failed to read directory", "path", pth, "error", err)
 		return
 	}
 
-	for _, f := range files {
-		if f.IsDir() {
+	for _, file := range files {
+		if file.IsDir() {
 			continue
 		}
-		fn := filepath.Join(pth, f.Name())
-		fi, err := f.Info()
-		if err != nil {
-			logger.Error("failed to get file info", "filename", fn, "err", err)
-			continue
-		} else {
-			// nie...
-			if fi.Size() < 10 {
-				if err := os.Remove(fn); err != nil {
-					logger.Error("the file size is zero, but I couldn't delete it", "filename", fn,
-						"err", err)
-					continue
-				}
-			}
-			if err := sendMailToPostfix(supervisor, fn); err != nil {
-				logger.Error("sending a message with an error", "filename", fn, "err", err)
-			} else {
-				founded++
-			}
 
+		filePath := filepath.Join(pth, file.Name())
+		info, err := file.Info()
+		if err != nil {
+			logger.Error("failed to retrieve file info", "filename", filePath, "error", err)
+			continue
 		}
-		logger.Debug("processing mail", "no", founded+1, "filename", fn)
+
+		// Remove empty or very small files
+		if info.Size() < 10 {
+			if err := os.Remove(filePath); err != nil {
+				logger.Error("failed to delete small file", "filename", filePath, "error", err)
+			}
+			continue
+		}
+
+		// Dispatch the mail message
+		if err := dispatchMailMessage(supervisor, filePath); err != nil {
+			logger.Error("failed to dispatch message", "filename", filePath, "error", err)
+		} else {
+			found++
+			logger.Debug("message dispatched successfully", "index", found, "filename", filePath)
+		}
 	}
-	return
+
+	return found
 }
 
-var foundFiles int
+func dispatchMailMessage(supervisor api.Supervisor, filename string) (retErr error) {
+	defer handlePanic(&retErr)
 
-func sendMailToPostfix(supervisor api.Supervisor, filename string) (retErr error) {
-
-	defer func(returnErr *error) {
-		if r := recover(); r != nil {
-			var ok bool
-			var err error
-			err, ok = r.(error)
-			if !ok {
-				err = fmt.Errorf("recover panic pkg: %v -- err %v", r, err)
-			}
-			*returnErr = err
-		}
-
-	}(&retErr)
-
-	finishHim := false
-
-	f, err := os.OpenFile(filename, os.O_RDWR|os.O_RDWR, 0600)
-	logger.Debug("message opened", "filename", filename)
+	file, err := openMailFile(filename)
 	if err != nil {
-		logger.Error("i can't open message", "filename", filename, "err", err)
-		retErr = err
-		return
+		return err
 	}
-	defer func() {
-		if finishHim {
-			if err := f.Truncate(0); err != nil {
-				logger.Error("can't truncate message file", "filename", filename, "err", err)
-			}
-		}
+	defer cleanupFile(file, filename, &retErr)
 
-		if err := f.Close(); err != nil {
-			logger.Error("can't close message, maybe already closed?", "filename", filename, "err", err)
-		}
-		if finishHim {
-			if err := os.Remove(filename); err != nil {
-				logger.Error("i can't remove message",
-					"filename", filename, "err", err)
-			}
-		}
-	}()
-	msg, err := mail.ReadMessage(f)
+	msg, err := mail.ReadMessage(file)
 	if err != nil {
-		logger.Error("i can't read mime message", "fileaname", filename, "err", err)
-		retErr = err
-		return
+		logger.Error("failed to read MIME message", "filename", filename, "error", err)
+		return err
 	}
 
-	xaction := msg.Header.Get(headers.XAction)
-	if len(xaction) == 0 {
-		logger.Error("XAction is empty", "filename", filename)
-		retErr = fmt.Errorf("XAction is empty %s", filename)
-		return
-
+	sender, recipient, err := readMessageHeader(supervisor, msg, filename)
+	if err != nil {
+		return err
 	}
 
-	xval := strings.Split(xaction, "|")
-	if len(xval) != 2 {
-		logger.Error("XAction does not consist of two parts", "filename", filename, "value", xval)
-		retErr = fmt.Errorf("XAction does not consist of two parts %s %v", filename, xval)
-		return
-
-	}
-	if xval[0] == "" {
-		xval[0] = supervisor.MailerDaemonEmailAddress()
-	}
-	if !domaintools.IsValidEmailAddress(xval[0]) {
-		logger.Error("XAction, the sender have error in email address", "filename", filename, "value", xval[0])
-		retErr = fmt.Errorf("XAction, the sender have error in email address %s %v", filename, xval)
-		return
-
+	if err := validateEmailAddresses(sender, recipient, filename); err != nil {
+		return err
 	}
 
-	if !domaintools.IsValidEmailAddress(xval[1]) {
-		logger.Error("XAction, the recipient has the wrong email address", "filename", filename,
-			"value", xval)
-		retErr = fmt.Errorf("XAction, the recipient has the wrong email address %s %v", filename, xval)
-		return
+	if _, err := file.Seek(0, io.SeekStart); err != nil {
+		return err
+	}
 
-	}
-	if _, err := f.Seek(0, io.SeekStart); err != nil {
-		retErr = err
-		return
-	}
-	if err := toPostfix(f, supervisor, xval[0], xval[1]); err != nil {
-		// if we don't eat it, we report it, otherwise we delete it
-		if strings.Index(err.Error(), "Recipient address rejected: User unknown in virtual mailbox table") == -1 {
-			retErr = err
-			return
+	return dispatchMail(file, supervisor, sender, recipient, filename)
+}
+
+// Function to handle panics and wrap errors
+func handlePanic(returnErr *error) {
+	if r := recover(); r != nil {
+		if err, ok := r.(error); ok {
+			*returnErr = fmt.Errorf("panic recovered: %w", err)
 		} else {
-			logger.Error("XAction, the recipient does not exist, delete the message",
-				"recipient", xval, "filename", filename, "err", err.Error())
-
+			*returnErr = fmt.Errorf("panic recovered: %v", r)
 		}
 	}
-	finishHim = true
+}
+
+// Opens the mail file and logs error if needed
+func openMailFile(filename string) (*os.File, error) {
+	file, err := os.OpenFile(filename, os.O_RDWR, 0600)
+	if err != nil {
+		logger.Error("failed to open message file", "filename", filename, "error", err)
+		return nil, err
+	}
+	return file, nil
+}
+
+// Reads and verifies the XAction header in the message
+func readMessageHeader(supervisor api.Supervisor, msg *mail.Message, filename string) (sender, recipient string, err error) {
+	xAction := msg.Header.Get(headers.XAction)
+	if len(xAction) == 0 {
+		logger.Error("XAction header is empty", "filename", filename)
+		return "", "", fmt.Errorf("XAction header missing in file %s", filename)
+	}
+
+	parts := strings.Split(xAction, "|")
+	if len(parts) != 2 {
+		logger.Error("XAction header has invalid format", "filename", filename, "value", parts)
+		return "", "", fmt.Errorf("XAction header format error in file %s", filename)
+	}
+
+	sender = parts[0]
+	recipient = parts[1]
+	if sender == "" {
+		sender = supervisor.MailerDaemonEmailAddress()
+	}
+	return sender, recipient, nil
+}
+
+// Validates the email addresses for sender and recipient
+func validateEmailAddresses(sender, recipient, filename string) error {
+	if !domaintools.IsValidEmailAddress(sender) {
+		logger.Error("invalid sender email in XAction", "filename", filename, "email", sender)
+		return fmt.Errorf("invalid sender email in file %s", filename)
+	}
+	if !domaintools.IsValidEmailAddress(recipient) {
+		logger.Error("invalid recipient email in XAction", "filename", filename, "email", recipient)
+		return fmt.Errorf("invalid recipient email in file %s", filename)
+	}
 	return nil
 }
 
-// toPostfix send message to postfix
+// Handles dispatch and any necessary error handling
+func dispatchMail(file *os.File, supervisor api.Supervisor, sender, recipient, filename string) error {
+	err := dispatchMessageToPostfix(file, supervisor, sender, recipient)
+	if err != nil && !strings.Contains(err.Error(), "User unknown in virtual mailbox table") {
+		return err
+	}
+	if err != nil {
+		logger.Error("recipient does not exist, message deleted", "filename", filename, "recipient", recipient, "error", err)
+	}
+	return nil
+}
+
+// Cleans up the file, truncating or deleting as necessary
+func cleanupFile(file *os.File, filename string, retErr *error) {
+	if *retErr == nil {
+		if err := file.Truncate(0); err != nil {
+			logger.Error("failed to truncate message file", "filename", filename, "error", err)
+		}
+	}
+	if err := file.Close(); err != nil {
+		logger.Error("failed to close message file", "filename", filename, "error", err)
+	}
+	if *retErr == nil {
+		if err := os.Remove(filename); err != nil {
+			logger.Error("failed to remove message file", "filename", filename, "error", err)
+		}
+	}
+}
+
+// dispatchMessageToPostfix dispatch message to postfix
 // @zohaSenderServerNode host and port of zoha-sender-server on main postfix instance
-func toPostfix(f *os.File, supervisor api.Supervisor, from, to string) error {
+func dispatchMessageToPostfix(f *os.File, supervisor api.Supervisor, from, to string) error {
 
 	scanner := bufio.NewScanner(f)
 
@@ -222,7 +239,7 @@ func toPostfix(f *os.File, supervisor api.Supervisor, from, to string) error {
 
 	c, err := smtp.Dial(supervisor.MainSenderNode())
 	if err != nil {
-		return fmt.Errorf("I can't connect to MainSenderNode %v err:%v", supervisor.MainSenderNode(), err)
+		return fmt.Errorf("I can't connect to MainSenderNode %v err:%w", supervisor.MainSenderNode(), err)
 	}
 	// your full hostname
 	if err := c.Hello(supervisor.Hostname()); err != nil {

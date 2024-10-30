@@ -39,13 +39,13 @@ type Session interface {
 	// you can treat it as caching to load all mailboxes to which it will deliver the message
 	AcceptRecipient(recipientAscii AddressEmail) error
 
-	// AcceptMessage: At this stage, you need to decide whether you will accept the message to all recipients or reject
+	// AcceptMessage AcceptMessage: At this stage, you need to decide whether you will accept the message to all recipients or reject
 	// it for everyone. If you can accept only some users, the rejection will always apply to the sender,
 	// in the sense that we do not accept from him because he is a spammer.
 	// You can return your own message, e.g. with message tracking or a link to a website that explains the reason,
 	AcceptMessage(message *mail.Message) error
 
-	// Physically deliver the message to the user's inbox
+	// ProcessDelivery Physically deliver the message to the user's inbox
 	ProcessDelivery(proxy MessageReceiverProxy, delivery Delivery, revHostname string) error
 
 	Close()

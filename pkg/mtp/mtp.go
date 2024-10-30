@@ -9,21 +9,21 @@ import (
 )
 
 const (
-	// 64 flags
+	// Authorization 64 flags
 	// Authorization support
 	Authorization bitmask.Flag64 = 1 << iota // 1 << 0 which is 00000001
 	StartTls                                 // 1 << 1 which is 00000010
-	// Receive emails from local users
+	// ReceiveFromLocalUsers Receive emails from local users
 	ReceiveFromLocalUsers // 1 << 2 which is 00000100
-	// Receive emails from remote (not logged in) users
+	// ReceiveFromRemoteUsers Receive emails from remote (not logged in) users
 	ReceiveFromRemoteUsers
 	AllowLocalhostConnection
-	// As mandated by RFC5321 Section 4.5.5, DSNs MUST be sent with a NULL Return-Path (or MAIL FROM) sender.
+	// ReceiveFromNullSender As mandated by RFC5321 Section 4.5.5, DSNs MUST be sent with a NULL Return-Path (or MAIL FROM) sender.
 	// The From: header MAILER-DAEMON@example.com is set by the receiving MTA, based on the NULL sender address.
 	// czyli domyślnie zezwalamy na puste maile i uwaga jeżeli je przyjmiesz nie możesz ich odrzucić
 	ReceiveFromNullSender
 	RequireLocalHostAuthorization
-	// we ignore many errors, e.g. wrong sender, etc
+	// LmtpService we ignore many errors, e.g. wrong sender, etc
 	// then check the SMTP already
 	LmtpService
 )
@@ -31,16 +31,16 @@ const (
 type AuthorizationHandler func(username string, password string) (bool, error)
 
 type Super interface {
-	// Default hostname
+	// Hostname Default hostname
 	Hostname() string
 	// Name visible when logging in
 	Name() string
-	// Software number (visible reporting processes)
+	// Version Software number (visible reporting processes)
 	Version() string
 
 	Flags() bitmask.Flag64
 
-	// Used at the stage when we do not yet know or cannot determine the quota of the actual user
+	// DefaultMaxMessageSizeInBytes Used at the stage when we do not yet know or cannot determine the quota of the actual user
 	DefaultMaxMessageSizeInBytes() int64
 	DefaultMaxRecipientsPerMessage() int
 }
@@ -117,30 +117,30 @@ type RejectErrCode int
 
 const (
 
-	// Reject should not be session-driven, should only inform about the following states:
+	// TemporaryServerRejectErr Reject should not be session-driven, should only inform about the following states:
 	// 1 Server error
 	TemporaryServerRejectErr RejectErrCode = iota
 
-	// 2 Rejecting an email address (recipient or sender), it doesn't matter because it results from the context
+	// RecipientServerRejectErr 2 Rejecting an email address (recipient or sender), it doesn't matter because it results from the context
 	RecipientServerRejectErr
 
-	// 3 Rejection due to message size
+	// QuotaLowRejectErr 3 Rejection due to message size
 	// 4 Rejected due to lack of adequate free disk space
 	QuotaLowRejectErr
 
-	// 5 Spam rejection
+	// YouSpamerGoAwayRejectErr 5 Spam rejection
 	YouSpamerGoAwayRejectErr
 
-	// 6 Rejection due to throtling
+	// TooManyConnectionsRejectErr 6 Rejection due to throtling
 	TooManyConnectionsRejectErr
 
 	// IN addition, it should be stated whether:
 	// - temporarily or permanently (to inform whether to try further)
 	// - be able to add their own message content
 
-	// If the problem is temporary -- be sure to do your text
+	// TemporaryMailBoxProblemErr If the problem is temporary -- be sure to do your text
 	TemporaryMailBoxProblemErr
-	// Reject an attempt to send to the specified address (maybe you're a spammer,
+	// RecipientAddressRejectErr Reject an attempt to send to the specified address (maybe you're a spammer,
 	// or maybe the mailbox doesn't exist anymore) -- don't try again
 	RecipientAddressRejectErr
 

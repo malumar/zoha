@@ -26,7 +26,7 @@ func MimeHeadersToStringWithOrder(h textproto.MIMEHeader, order []string) string
 	return writer.String()
 }
 
-// it doesn't really matter
+// MimeHeadersToString it doesn't really matter
 func MimeHeadersToString(h textproto.MIMEHeader) string {
 	var out []byte
 	writer := bytes.NewBuffer(out)
@@ -45,7 +45,7 @@ func MimeHeadersToString(h textproto.MIMEHeader) string {
 	return writer.String()
 }
 
-// it doesn't really matter
+// MimeHeadersSliceToString it doesn't really matter
 func MimeHeadersSliceToString(headers []string) string {
 	return MimeHeadersSliceToStringLength(headers, 200)
 }

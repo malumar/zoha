@@ -595,9 +595,9 @@ func NewLmtpSession(supervisor api.Supervisor, logger *slog.Logger) *SessionImpl
 		username:                    LocalUser1Email,
 		password:                    TestPassword,
 		allowSendFrom:               []string{LocalUser1Email, LocalUser2Email},
-		returnAuthErr:               errors.New("Not implemented Auth"),
-		returnNewMessageFromErr:     errors.New("Not implemented New message from"),
-		returnAddRecipientErr:       errors.New("Not implemented Add Recipient"),
+		returnAuthErr:               errors.New("not implemented Auth"),
+		returnNewMessageFromErr:     errors.New("not implemented New message from"),
+		returnAddRecipientErr:       errors.New("not implemented Add Recipient"),
 		returnOnReceivingMessageErr: errors.New("OnReceivingMessageErr"),
 
 		loggedIn: false,

@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 )
 
-// mailbox i.e. the directory to which to move mail after receiving it
+// Maildir mailbox i.e. the directory to which to move mail after receiving it
 type Maildir string
 
 // Special folders start with a dollar
@@ -51,7 +51,7 @@ func (i ImapFlag) Delete(key string) {
 
 func (i ImapFlag) String() string {
 	buf := bytes.Buffer{}
-	for k, _ := range i {
+	for k := range i {
 		if buf.Len() > 0 {
 			buf.WriteString(",")
 		}
@@ -62,13 +62,13 @@ func (i ImapFlag) String() string {
 
 func (i ImapFlag) Keys() []string {
 	r := make([]string, 0)
-	for k, _ := range i {
+	for k := range i {
 		r = append(r, k)
 	}
 	return r
 }
 
-// Create a folder ${MAILDIR}/new if it does not exist
+// CreateNewMailDirIfNotExists Create a folder ${MAILDIR}/new if it does not exist
 // and return the full path where you should write
 func (m Maildir) CreateNewMailDirIfNotExists(basePath string, customValue string,
 	folderPerm, filePerm os.FileMode) (string, error) {
@@ -128,18 +128,19 @@ func (m Maildir) Path(basePath string, customValue string) string {
 //	return ret
 //}
 
-// because adding headers would make us add to the message the headers already received in the previous session
-//func NewMessageDeliveryFrom(delivery Delivery, appendHeaders textproto.MIMEHeader, emailLowerAsciiString string) Delivery {
-//	//	delivery.SetHeader(headers.DeliveredTo, emailLowerAsciiString)
-//	//delivery.To = SanitizeEmailAddress(emailLowerAsciiString)
-//	delivery.Maildir = ToMailDir(emailLowerAsciiString)
+// ToMailDir because adding headers would make us add to the message the headers already received in the previous session
 //
-//	delivery.appendHeader = textproto.MIMEHeader{}
-//	for k, v := range appendHeaders {
-//		delivery.appendHeader[k] = v
+//	func NewMessageDeliveryFrom(delivery Delivery, appendHeaders textproto.MIMEHeader, emailLowerAsciiString string) Delivery {
+//		//	delivery.SetHeader(headers.DeliveredTo, emailLowerAsciiString)
+//		//delivery.To = SanitizeEmailAddress(emailLowerAsciiString)
+//		delivery.Maildir = ToMailDir(emailLowerAsciiString)
+//
+//		delivery.appendHeader = textproto.MIMEHeader{}
+//		for k, v := range appendHeaders {
+//			delivery.appendHeader[k] = v
+//		}
+//		return delivery
 //	}
-//	return delivery
-//}
 func ToMailDir(emailLowerAsciiString string) Maildir {
 	return Maildir(emailLowerAsciiString)
 }

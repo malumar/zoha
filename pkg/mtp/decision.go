@@ -9,7 +9,7 @@ func (d Decision) String() string {
 const DecisionKey = "response"
 
 const (
-	// Dunno I don't know what to do or I don't want to decide,
+	// Dunno I don't know what to do, or I don't want to decide,
 	// let the next person in the chain make that decision
 	// this should be the default answer, which does not confirm anything,
 	// it only informs that we are moving to the next stage

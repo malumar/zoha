@@ -4,7 +4,7 @@ import (
 	"time"
 )
 
-// todoThe structure of Mailbox needs to be reduced,
+// Mailbox todoThe structure of Mailbox needs to be reduced,
 // as it contains parts of the code used inside our company, which will not be published here
 type Mailbox struct {
 	IsAlias bool

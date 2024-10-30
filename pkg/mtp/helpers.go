@@ -14,7 +14,7 @@ import (
 	"time"
 )
 
-// It means that we have already sent a message from this email
+// XForwardedToHeader It means that we have already sent a message from this email
 // and if it is again send a copy to then in this case we ignore the subsequent sending of the copy
 const XForwardedToHeader = "X-Forwarded-To"
 
@@ -247,7 +247,7 @@ func FilterSendCopyToEmails(logger *slog.Logger, mb *api.Mailbox, supervisor api
 	ret := make([]string, count)
 	var i int
 
-	for email, _ := range uniq {
+	for email := range uniq {
 		ret[i] = email
 		i++
 	}

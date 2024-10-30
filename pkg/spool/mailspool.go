@@ -1,4 +1,4 @@
-// Spool is used to queue messages to be delivered to users other than the destination email address
+// Package spool Spool is used to queue messages to be delivered to users other than the destination email address
 // (e.g. send copy to, alias, notifications it), this is a role of MTA such as Postfix
 package spool
 

@@ -5,7 +5,6 @@ import (
 	"testing"
 )
 
-
 const (
 	TESTFLAG_ONE Flag = 1 << iota
 	TESTFLAG_TWO
@@ -19,7 +18,7 @@ const (
 
 func TestAddFlag(t *testing.T) {
 
-	var mainFlag Flag = TESTFLAG_TWO
+	var mainFlag = TESTFLAG_TWO
 
 	mainFlag.AddFlag(TESTFLAG_THREE)
 
@@ -29,7 +28,7 @@ func TestAddFlag(t *testing.T) {
 
 func TestClearFlag(t *testing.T) {
 
-	var mainFlag Flag = TESTFLAG_ONE | TESTFLAG_THREE
+	var mainFlag = TESTFLAG_ONE | TESTFLAG_THREE
 
 	mainFlag.ClearFlag(TESTFLAG_THREE)
 
@@ -39,7 +38,7 @@ func TestClearFlag(t *testing.T) {
 
 func TestHasFlag(t *testing.T) {
 
-	var mainFlag Flag = TESTFLAG_ONE | TESTFLAG_THREE
+	var mainFlag = TESTFLAG_ONE | TESTFLAG_THREE
 
 	assert.True(t, mainFlag.HasFlag(TESTFLAG_THREE))
 
@@ -60,8 +59,5 @@ func TestFlag64_AllCombinations(t *testing.T) {
 		{"TESTFLAG64_ONE", TESTFLAG64_ONE},
 		{"TESTFLAG64_TWO", TESTFLAG64_TWO},
 		{"TESTFLAG64_THREE", TESTFLAG64_THREE},
-
 	})
 }
-
-

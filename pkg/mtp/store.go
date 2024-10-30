@@ -143,7 +143,9 @@ func NewFileFromMailboxDelivery(proxy MessageReceiverProxy, delivery Delivery, h
 */
 
 // StoreMessage file to remember that the folder you are saving to must have already been created by you,
-//  so you need to create it yourself before calling this function
+//
+//	so you need to create it yourself before calling this function
+//
 // @filename the full save path
 func StoreMessage(appendBytes []byte, proxy MessageReceiverProxy, delivery Delivery, filename string) (fileSize int64, err error) {
 	buf := bytes.Buffer{}
@@ -197,14 +199,14 @@ func StoreMessage(appendBytes []byte, proxy MessageReceiverProxy, delivery Deliv
 	if err != nil {
 		logger.Error("Error writing message header", "err", err)
 		removeFile = true
-		return 0, fmt.Errorf("Error writing message header %v", err)
+		return 0, fmt.Errorf("error writing message header %v", err)
 	}
 
 	ds, err := io.Copy(dstFile, proxy.GetBuffer())
 	if err != nil {
 		logger.Error("error writing message body", "err", err)
 		removeFile = true
-		return 0, fmt.Errorf("Error writing message body %v", err)
+		return 0, fmt.Errorf("error writing message body %v", err)
 	}
 
 	return ds + int64(hs), nil
@@ -243,7 +245,7 @@ func StoreMessageFromWriter(appendBytes []byte, wrto io.WriterTo, filename strin
 		}
 		if hs != len(appendBytes) {
 			removeFile = true
-			errMsg := fmt.Errorf("We wanted to write %d but we only wrote %d", len(appendBytes), hs)
+			errMsg := fmt.Errorf("we wanted to write %d but we only wrote %d", len(appendBytes), hs)
 			logger.Error(errMsg.Error())
 			return 0, errMsg
 		}
@@ -253,7 +255,7 @@ func StoreMessageFromWriter(appendBytes []byte, wrto io.WriterTo, filename strin
 	if err != nil {
 		logger.Error("error writing message body", "err", err)
 		removeFile = true
-		return 0, fmt.Errorf("Error writing message body %v", err)
+		return 0, fmt.Errorf("error writing message body %v", err)
 	}
 
 	return int64(hs), nil

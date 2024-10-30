@@ -154,7 +154,7 @@ func (l *Listener) Listen() (err error) {
 func (l *Listener) Run(ctx context.Context, supervisor SupervisorExt, cancelFunc context.CancelFunc) error {
 
 	if l.netListener == nil {
-		err := fmt.Errorf("Listener has not been started yet")
+		err := fmt.Errorf("listener has not been started yet")
 		logger.Error(err.Error())
 		return err
 	}

@@ -82,9 +82,9 @@ func NewLmtpSession(ci *mtp.ConnectionInfo, l *slog.Logger) *SessionImpl {
 		username:                    LocalUser1Email,
 		password:                    TestPassword,
 		allowSendFrom:               []string{LocalUser1Email, LocalUser2Email},
-		returnAuthErr:               errors.New("Not implemented Auth"),
-		returnNewMessageFromErr:     errors.New("Not implemented New message from"),
-		returnAddRecipientErr:       errors.New("Not implemented Add Recipient"),
+		returnAuthErr:               errors.New("not implemented Auth"),
+		returnNewMessageFromErr:     errors.New("not implemented New message from"),
+		returnAddRecipientErr:       errors.New("not implemented Add Recipient"),
 		returnOnReceivingMessageErr: errors.New("OnReceivingMessageErr"),
 
 		loggedIn: false,
@@ -120,7 +120,7 @@ func (s SessionImpl) OnAuthorization(username string, password string, service a
 	return s.loggedIn, s.returnAuthErr
 }
 
-// The server knows that you are logged in, the question is whether you can use this address as a sender
+// IsAllowSendAs The server knows that you are logged in, the question is whether you can use this address as a sender
 func (s SessionImpl) IsAllowSendAs(addressEmailInAsciiLowerCase mtp.AddressEmail) (bool, error) {
 	for _, e := range s.allowSendFrom {
 		if e == addressEmailInAsciiLowerCase.String() {

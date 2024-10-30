@@ -16,7 +16,7 @@ type RoundRobin[O any] struct {
 	next    uint32
 }
 
-// New returns RoundRobin implementation with roundrobin.
+// NewRr New returns RoundRobin implementation with roundrobin.
 func NewRr[O any](objects ...*O) (*RoundRobin[O], error) {
 	if len(objects) == 0 {
 		return nil, ErrorNoObjectsProvided
