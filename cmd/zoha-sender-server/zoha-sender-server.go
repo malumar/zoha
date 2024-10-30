@@ -1,6 +1,5 @@
-// A master Sender server, forwarding messages from Zoha-Sender-Client to the main MTA
-// (e.g. the main instance of postfix), here the whole fun starts again and again
-// the MTA can forward the message to ZOHA-LMTP
+// Zoha-Sender-Server: forwards messages from Zoha-Sender-Client to the main MTA (e.g., Postfix instance)
+
 package main
 
 import (
@@ -18,63 +17,72 @@ var logger = slog.With("package", "zoha-sender-server")
 func main() {
 	var allowlist mslices.SliceOfFlag[string]
 
-	var localAddr = flag.String("l", "0.0.0.0:9999", "listen address")
-	var remoteAddr = flag.String("d", "127.0.0.1:25", "proxying address (e.g) postfix instance")
-	flag.Var(&allowlist, "ip", "IP address"+
-		" that can be allowed to connect, you can use simple expressions and ? to match the results"+
-		" (asterisk, anything, question mark, any character), "+
-		"You can specify this parameter multiple times to allow access from multiple IP addresses")
+	localAddr := flag.String("l", "0.0.0.0:9999", "listen address")
+	remoteAddr := flag.String("d", "127.0.0.1:25", "proxying address (e.g., Postfix instance)")
+	flag.Var(&allowlist, "ip", "Allowed IP addresses with optional wildcards (?) for single character matching. "+
+		"Multiple IP addresses can be specified for access control.")
 
 	flag.Parse()
+	formatAllowlist(&allowlist)
 
-	for i, item := range allowlist {
-		slog.Info("Enable listing match to", "pattern", item)
-		allowlist[i] = item + ":"
-	}
-
-	logger.Info("Listening & Proxying", "listen", *localAddr, "proxying", *remoteAddr)
+	logger.Info("Starting server", "listening", *localAddr, "proxying", *remoteAddr)
 	listener, err := net.Listen("tcp", *localAddr)
 	if err != nil {
-		logger.Error("can't listen", "err", err)
+		logger.Error("failed to start listening", "error", err)
 		os.Exit(1)
 	}
+
 	for {
 		conn, err := listener.Accept()
-		logger.Info("new connection", "remote", conn.RemoteAddr())
 		if err != nil {
-			logger.Error("error accepting connection", "err", err)
+			logger.Error("connection accept error", "error", err)
 			continue
 		}
-		go func() {
-			defer conn.Close()
-			var found bool
-			for _, item := range allowlist {
-				if strings.HasPrefix(conn.RemoteAddr().String(), item) {
-					found = true
-					break
-				}
-			}
-			if !found {
-				logger.Error("incoming connection rejected", "client", conn.RemoteAddr().String())
-				return
-			}
-
-			conn2, err := net.Dial("tcp", *remoteAddr)
-			if err != nil {
-				logger.Error("error dialing to smtp server", "dest", *remoteAddr, "err")
-				return
-			}
-			defer conn2.Close()
-			closer := make(chan struct{}, 2)
-			go copier(closer, conn2, conn)
-			go copier(closer, conn, conn2)
-			<-closer
-			logger.Info("connection completed", "client", conn.RemoteAddr())
-		}()
+		go handleConnection(conn, *remoteAddr, allowlist)
 	}
 }
 
-func copier(closer chan struct{}, dst io.Writer, src io.Reader) {
+func formatAllowlist(allowlist *mslices.SliceOfFlag[string]) {
+	for i, item := range *allowlist {
+		logger.Info("Enabled IP pattern", "pattern", item)
+		(*allowlist)[i] = item + ":"
+	}
+}
+
+func handleConnection(conn net.Conn, remoteAddr string, allowlist mslices.SliceOfFlag[string]) {
+	defer conn.Close()
+	clientIP := conn.RemoteAddr().String()
+
+	if !isAllowedIP(clientIP, allowlist) {
+		logger.Error("connection rejected", "client", clientIP)
+		return
+	}
+
+	conn2, err := net.Dial("tcp", remoteAddr)
+	if err != nil {
+		logger.Error("failed to connect to MTA", "destination", remoteAddr, "error", err)
+		return
+	}
+	defer conn2.Close()
+
+	logger.Info("Connection accepted", "client", clientIP)
+	closer := make(chan struct{}, 2)
+	go proxyData(closer, conn2, conn)
+	go proxyData(closer, conn, conn2)
+	<-closer
+	logger.Info("Connection closed", "client", clientIP)
+}
+
+func isAllowedIP(clientIP string, allowlist mslices.SliceOfFlag[string]) bool {
+	for _, pattern := range allowlist {
+		if strings.HasPrefix(clientIP, pattern) {
+			return true
+		}
+	}
+	return false
+}
+
+func proxyData(closer chan struct{}, dst io.Writer, src io.Reader) {
 	_, _ = io.Copy(dst, src)
-	closer <- struct{}{} // connection is closed, send signal to stop proxy
+	closer <- struct{}{}
 }

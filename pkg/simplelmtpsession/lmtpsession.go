@@ -16,10 +16,10 @@ import (
 
 const (
 	WhitelistedTag = "WL"
-	BlacklistedTag = "BL"
-	SpamTag        = "S"
-	SocialTag      = "SC"
-	AdvertiseTag   = "AD"
+	// todo: BlacklistedTag = "BL"
+	SpamTag      = "S"
+	SocialTag    = "SC"
+	AdvertiseTag = "AD"
 )
 
 type SenderEmailClassification int

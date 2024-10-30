@@ -534,6 +534,16 @@ func (self *TestSupervisor) Authorization(username string, password string, serv
 	panic("implement me")
 }
 
+func (self *TestSupervisor) AbsoluteSpoolPath() string {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (self *TestSupervisor) MainSenderNode() string {
+	//TODO implement me
+	panic("implement me")
+}
+
 func (self *TestSupervisor) FindMailbox(name string) *api.Mailbox {
 	//TODO implement me
 	panic("implement me")
@@ -595,9 +605,9 @@ func NewLmtpSession(supervisor api.Supervisor, logger *slog.Logger) *SessionImpl
 		username:                    LocalUser1Email,
 		password:                    TestPassword,
 		allowSendFrom:               []string{LocalUser1Email, LocalUser2Email},
-		returnAuthErr:               errors.New("not implemented Auth"),
-		returnNewMessageFromErr:     errors.New("not implemented New message from"),
-		returnAddRecipientErr:       errors.New("not implemented Add Recipient"),
+		returnAuthErr:               errors.New("Not implemented Auth"),
+		returnNewMessageFromErr:     errors.New("Not implemented New message from"),
+		returnAddRecipientErr:       errors.New("Not implemented Add Recipient"),
 		returnOnReceivingMessageErr: errors.New("OnReceivingMessageErr"),
 
 		loggedIn: false,

@@ -22,6 +22,7 @@ const (
 	RemoteUser1  = "janek@company.any-domain"
 )
 
+//goland:noinspection HttpUrlsUsage,HttpUrlsUsage
 const Message1 = `Return-Path: <mlemos@acm.org>
 To: Manuel Lemos <mlemos@linux.local>
 Subject: Testing Manuel Lemos' MIME E-mail composing and sending PHP class: HTML message

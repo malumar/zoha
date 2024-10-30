@@ -15,7 +15,6 @@ import (
 	"time"
 
 	"net"
-	"regexp"
 )
 
 const (
@@ -667,5 +666,3 @@ func CheckErrorsCount(client *Client, maxErrorsPerConnection int) {
 		}
 	}
 }
-
-var addressMatch = regexp.MustCompile(`(tcp|unix)?(:[a-z0-9]+)(:[0-9]+)`)

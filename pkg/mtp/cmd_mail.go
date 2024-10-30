@@ -34,6 +34,7 @@ func cmdMail(c *Client, supervisor api.Supervisor, args string) {
 				//  logan.Info("extract from mailfrom: `%s`, oryginal:`%s`", mailFrom, args)
 
 				var isEmptyEmail bool
+				//goland:noinspection GrazieInspection
 				if closeTagPos := strings.Index(mailFrom, ">"); closeTagPos > -1 && closeTagPos < len(mailFrom) {
 
 					/*
@@ -51,6 +52,7 @@ func cmdMail(c *Client, supervisor api.Supervisor, args string) {
 						}
 					}
 
+					//goland:noinspection GrazieInspection
 					if !isEmptyEmail {
 						// We divide BODY=8BITMIME Val=Other
 						// into

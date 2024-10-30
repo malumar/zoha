@@ -6,14 +6,11 @@ import (
 	"github.com/malumar/zoha/pkg/mtp"
 	"log/slog"
 	"net/mail"
-	"net/smtp"
 	"os"
 	"sync"
 )
 
-var LastCon *smtp.Client
 var Wg sync.WaitGroup
-var LmtpServer *mtp.Listener
 var LmtpSession *SessionImpl
 
 type SupervisorMockup struct{}

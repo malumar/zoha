@@ -1,6 +1,5 @@
 package mtp
 
-//goland:noinspection GoCommentStart,GoCommentStart,GoCommentStart
 const (
 	FromField       = "from"
 	ToField         = "to"

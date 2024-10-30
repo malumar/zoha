@@ -61,10 +61,6 @@ type PostmasterHolder interface {
 	MailerDaemonEmailAddress() string
 }
 
-func NewPostmasterAddressEmail() {
-
-}
-
 func SanitizeEmailAddress(value string) AddressEmail {
 	v, _ := NewAddressEmailSanitize(value)
 	return v
@@ -102,14 +98,14 @@ func NewRejectErr(code RejectErrCode) error {
 }
 
 func NewRejectErrMessage(code RejectErrCode, message string) error {
-	var close bool
+	var closeConnection bool
 	if val, ok := rejectMessages[code]; !ok {
-		close = val.Close
+		closeConnection = val.Close
 	}
 	return RejectErr{
 		Code:            code,
 		AppendMessage:   message,
-		CloseConnection: close,
+		CloseConnection: closeConnection,
 	}
 }
 

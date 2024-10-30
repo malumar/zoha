@@ -17,7 +17,7 @@ const (
 	// Accept we finish the entire operation and confirm; other mechanisms after this are not important
 	// (they will not be checked) if you want to confirm the correctness of the operation,
 	// you should return dunno accept only finally
-	Accept = "accept"
+	// todo: Accept = "accept"
 	// Reject rejection, we do not proceed
 	Reject = "reject"
 )
