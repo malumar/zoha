@@ -296,6 +296,7 @@ func isCanSendAsLocalUserIfIsLocal(supervisor api.Supervisor, sender AddressEmai
 	return true
 }
 
+// isAllowSendAs can I send from an email address
 func isAllowSendAs(c *Client, sender AddressEmail) bool {
 	allowSend, err := c.Session.IsAllowSendAs(sender)
 	if err != nil {

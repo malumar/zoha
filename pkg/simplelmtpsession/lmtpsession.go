@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/malumar/zoha/api"
+	"github.com/malumar/zoha/pkg/bytefmt"
 	"github.com/malumar/zoha/pkg/mimemsg"
 	"github.com/malumar/zoha/pkg/mtp"
 	"github.com/malumar/zoha/pkg/mtp/headers"
@@ -48,6 +49,10 @@ func NewLmtpSession(supervisor api.MaildirSupervisor, l *slog.Logger) *SessionIm
 		returnNewMessageFromErr:     errNewMessageFromNotImplemented,
 		returnAddRecipientErr:       errAddRecipientNotImplemented,
 		returnOnReceivingMessageErr: errors.New("OnReceivingMessageErr"),
+		loggedIn:                    false,
+		//hi:                          hi,
+		//hostname:                    myHostname,
+		//	outgoingSpool: nil,
 	}
 }
 
@@ -287,7 +292,7 @@ func (self *SessionImpl) ProcessDelivery(proxy mtp.MessageReceiverProxy, deliver
 		}
 	}
 
-	_, _, err := mtp.DefaultNewFileFromDelivery(proxy, delivery,
+	fn, ds, err := mtp.DefaultNewFileFromDelivery(proxy, delivery,
 		self.supervisor.Hostname(),
 		self.supervisor.GetAbsoluteMaildirPath(mb),
 	)
@@ -295,6 +300,12 @@ func (self *SessionImpl) ProcessDelivery(proxy mtp.MessageReceiverProxy, deliver
 		self.logger.Debug("failed to save incoming message")
 		return err
 	}
+
+	var dsc uint64
+	if ds > 0 {
+		dsc = uint64(ds)
+	}
+	self.logger.Debug("saved file as `%s` size %s\n", fn, bytefmt.ByteSize(dsc))
 
 	if arMsg != nil && len(arToEmail) > 0 {
 		if _, err := mtp.StoreMessageFromWriter(

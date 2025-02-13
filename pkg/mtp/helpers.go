@@ -349,6 +349,7 @@ func SendAutoresponseMessage(logger *slog.Logger, msg *mail.Message, mb *api.Mai
 	}
 
 	subjectAr = parsemail.DecodeMimeSentence(msg.Header.Get("Subject"))
+	// w obecnym jest subjectAr = parsemail.DecodeSubjectHeader(msg.Header)
 
 	m := mimemsg.NewMessage()
 
