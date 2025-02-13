@@ -194,7 +194,7 @@ func (self *SessionImpl) AcceptMessage(message *mail.Message) error {
 	return nil
 }
 
-func (self *SessionImpl) ProcessDelivery(proxy mtp.MessageReceiverProxy, delivery mtp.Delivery,
+func (self *SessionImpl) ProcessDeliveryProcessDelivery(proxy mtp.MessageReceiverProxy, delivery mtp.Delivery,
 	reverseHostname string) error {
 	// 4 stars or more
 	spamCount := len(proxy.GetMessage().Header.Get("X-Spam-Level"))
