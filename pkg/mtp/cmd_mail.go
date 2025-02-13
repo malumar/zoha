@@ -18,7 +18,7 @@ func cmdMail(c *Client, supervisor api.Supervisor, args string) {
 			var mailFrom string
 			if c.state.fromCommandPassed {
 				// if c.state.from.IsValid() {
-				c.WriteCmd("503  Bad sequence of Commands 1")
+				_ = c.WriteCmd("503  Bad sequence of Commands 1")
 
 				c.logger.Error("Bad sequence of Commands 1",
 					ActionNameField, "mailFrom",
@@ -67,7 +67,7 @@ func cmdMail(c *Client, supervisor api.Supervisor, args string) {
 								OriginalValue, args,
 								DecisionKey, Reject,
 							)
-							c.WriteCmd(fmt.Sprintf("550 %s", err.Error()))
+							_ = c.WriteCmd(fmt.Sprintf("550 %s", err.Error()))
 							c.ErrorsCount++
 							// infoLog(c, "REJECT FROM: <%s>  REASON: bad email address format", mailFrom[pos+1:])
 							return
@@ -120,7 +120,7 @@ func cmdMail(c *Client, supervisor api.Supervisor, args string) {
 							DecisionKey, Reject,
 						)
 
-						c.WriteCmd(fmt.Sprintf("550 %s", erre.Error()))
+						_ = c.WriteCmd(fmt.Sprintf("550 %s", erre.Error()))
 						c.ErrorsCount++
 
 						return
@@ -142,7 +142,7 @@ func cmdMail(c *Client, supervisor api.Supervisor, args string) {
 							FromField, sender.String(),
 							DecisionKey, Reject,
 						)
-						c.WriteCmd("451 4.7.1 Unable to complete command")
+						_ = c.WriteCmd("451 4.7.1 Unable to complete command")
 						c.ErrorsCount++
 						return
 					} else {
@@ -156,7 +156,7 @@ func cmdMail(c *Client, supervisor api.Supervisor, args string) {
 								ActionNameField, "mailFrom",
 								DecisionKey, Reject,
 							)
-							c.WriteCmd(fmt.Sprintf("553 5.7.1 <%s>: Sender address rejected, sever not for local users", sender))
+							_ = c.WriteCmd(fmt.Sprintf("553 5.7.1 <%s>: Sender address rejected, sever not for local users", sender))
 							c.ErrorsCount++
 						}
 					} else {
@@ -166,7 +166,7 @@ func cmdMail(c *Client, supervisor api.Supervisor, args string) {
 								ActionNameField, "mailFrom",
 								DecisionKey, Reject,
 							)
-							c.WriteCmd(fmt.Sprintf("553 5.7.1 <%s>: Sender address rejected, sever not logged in (server only for local users)", sender))
+							_ = c.WriteCmd(fmt.Sprintf("553 5.7.1 <%s>: Sender address rejected, sever not logged in (server only for local users)", sender))
 							c.ErrorsCount++
 
 						}
@@ -210,15 +210,14 @@ func cmdMail(c *Client, supervisor api.Supervisor, args string) {
 							DecisionKey, Reject,
 						)
 
-						c.WriteCmd("451 4.7.1 Unable to complete command")
+						_ = c.WriteCmd("451 4.7.1 Unable to complete command")
 						c.ErrorsCount++
 
 					}
 
 					return
 				} else {
-
-					c.WriteCmd("250 OK")
+					_ = c.WriteCmd("250 OK")
 				}
 				if sender.IsEmpty() {
 					if c.Flags.HasFlag(ReceiveFromNullSender) {
@@ -306,7 +305,7 @@ func isAllowSendAs(c *Client, sender AddressEmail) bool {
 				FromField, sender.String(),
 				DecisionKey, Reject,
 			)
-			c.WriteCmd("451 4.7.1 Unable to complete command")
+			_ = c.WriteCmd("451 4.7.1 Unable to complete command")
 			c.ErrorsCount++
 		}
 		return false
@@ -315,6 +314,6 @@ func isAllowSendAs(c *Client, sender AddressEmail) bool {
 }
 
 func disallowSendAsResponse(c *Client, sender AddressEmail) {
-	c.WriteCmd(fmt.Sprintf("553 5.7.1 <%s>: Sender address rejected: not logged in", sender.String()))
+	_ = c.WriteCmd(fmt.Sprintf("553 5.7.1 <%s>: Sender address rejected: not logged in", sender.String()))
 	c.ErrorsCount++
 }
